@@ -1,62 +1,76 @@
 fn main() {
     let input = include_str!("../data/input.txt");
-    dbg!(solution(input));
+    let final_coordinate = Coordinate::from_input_file(input);
+    println!(
+        "Problem 1 Solution: {}\nProblem 2 Solution: {}",
+        final_coordinate.problem1(),
+        final_coordinate.problem2()
+    )
 }
 
-fn solution(input: &str) -> (usize, usize) {
-    let mut horizontal = 0;
-    let mut depth = 0;
-    let mut aim = 0;
+#[derive(Default)]
+struct Coordinate {
+    horizontal: usize,
+    depth: usize,
+    aim: usize,
+}
 
-    for (dir, val) in get_instructions(input) {
-        match dir {
-            Direction::Forward => {
-                horizontal += val;
-                depth += val * aim;
+impl Coordinate {
+    fn from_input_file(input: &str) -> Self {
+        input
+            .lines()
+            .map(|line| Instruction::from_line(line).unwrap())
+            .fold(Coordinate::default(), |mut acc, instruction| {
+                acc.move_submarine(instruction);
+                acc
+            })
+    }
+    fn move_submarine(&mut self, instruction: Instruction) {
+        match instruction {
+            Instruction::Forward(val) => {
+                self.horizontal += val;
+                self.depth += val * self.aim;
             }
-            Direction::Down => aim += val,
-            Direction::Up => aim -= val,
+            Instruction::Down(val) => self.aim += val,
+            Instruction::Up(val) => self.aim -= val,
         }
     }
-    (horizontal * aim, horizontal * depth)
+
+    fn problem1(&self) -> usize {
+        self.horizontal * self.aim
+    }
+    fn problem2(&self) -> usize {
+        self.horizontal * self.depth
+    }
 }
 
-
-fn get_instructions<'a>(input: &'a str) -> impl Iterator<Item = (Direction, usize)> + 'a {
-    input
-        .lines()
-        .map(|line| line.split_once(" ").unwrap())
-        .map(|(dir, val)| {
-            (
-                Direction::from_str(dir).unwrap(),
-                val.parse::<usize>().unwrap(),
-            )
-        })
+enum Instruction {
+    Forward(usize),
+    Up(usize),
+    Down(usize),
 }
 
-enum Direction {
-    Forward,
-    Up,
-    Down,
-}
-
-impl Direction {
-    fn from_str(input: &str) -> Option<Direction> {
-        match input {
-            "forward" => Some(Direction::Forward),
-            "down" => Some(Direction::Down),
-            "up" => Some(Direction::Up),
+impl Instruction {
+    fn from_line(line: &str) -> Option<Instruction> {
+        match line.split_once(' ').unwrap() {
+            ("forward", val) => Some(Instruction::Forward(val.parse().unwrap())),
+            ("down", val) => Some(Instruction::Down(val.parse().unwrap())),
+            ("up", val) => Some(Instruction::Up(val.parse().unwrap())),
             _ => None,
         }
     }
 }
 
-
+#[test]
+fn test_problem1_sample() {
+    let input = include_str!("../data/sample.txt");
+    let pos = Coordinate::from_input_file(input);
+    assert_eq!(pos.problem1(), 150);
+}
 
 #[test]
-fn test_solution() {
+fn test_problem2_sample() {
     let input = include_str!("../data/sample.txt");
-    let (problem1, problem2) = solution(input);
-    assert_eq!(problem1, 150);
-    assert_eq!(problem2, 900);
+    let pos = Coordinate::from_input_file(input);
+    assert_eq!(pos.problem2(), 900);
 }
