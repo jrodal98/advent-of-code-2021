@@ -1,53 +1,37 @@
 fn main() {
     let input = include_str!("../data/input.txt");
-    println!("{}", problem1(input));
-    println!("{}", problem2(input));
+    dbg!(solution(input));
 }
 
-fn problem1(input: &str) -> usize {
-    let mut horizontal = 0;
-    let mut depth = 0;
-    for (direction, val) in get_instructions(input) {
-        match direction {
-            Direction::Forward => horizontal += val,
-            Direction::Down => depth += val,
-            Direction::Up => depth -= val,
-        };
-    }
-    return horizontal * depth;
-}
-
-fn problem2(input: &str) -> usize {
+fn solution(input: &str) -> (usize, usize) {
     let mut horizontal = 0;
     let mut depth = 0;
     let mut aim = 0;
-    for (direction, val) in get_instructions(input) {
-        match direction {
+
+    for (dir, val) in get_instructions(input) {
+        match dir {
             Direction::Forward => {
                 horizontal += val;
-                depth += aim * val;
-            },
+                depth += val * aim;
+            }
             Direction::Down => aim += val,
             Direction::Up => aim -= val,
-        };
+        }
     }
-    return horizontal * depth;
+    (horizontal * aim, horizontal * depth)
 }
 
-fn get_instructions(input: &str) -> Vec<(Direction, usize)> {
+
+fn get_instructions<'a>(input: &'a str) -> impl Iterator<Item = (Direction, usize)> + 'a {
     input
         .lines()
-        .map(|line| {
-            let raw_instructions: Vec<&str> = line.split_whitespace().collect();
-            match &raw_instructions[..] {
-                &[direction, val, ..] => (
-                    Direction::from_str(direction).expect("Invalid direction, check input"),
-                    val.parse::<usize>().expect("Could not parse value into unsigned int"),
-                ),
-                _ => unreachable!(),
-            }
+        .map(|line| line.split_once(" ").unwrap())
+        .map(|(dir, val)| {
+            (
+                Direction::from_str(dir).unwrap(),
+                val.parse::<usize>().unwrap(),
+            )
         })
-        .collect()
 }
 
 enum Direction {
@@ -67,16 +51,12 @@ impl Direction {
     }
 }
 
-#[test]
-fn test_problem1() {
-    let input = include_str!("../data/sample.txt");
-    let res = problem1(input);
-    assert_eq!(res, 150);
-}
+
 
 #[test]
-fn test_problem2() {
+fn test_solution() {
     let input = include_str!("../data/sample.txt");
-    let res = problem2(input);
-    assert_eq!(res, 900);
+    let (problem1, problem2) = solution(input);
+    assert_eq!(problem1, 150);
+    assert_eq!(problem2, 900);
 }
