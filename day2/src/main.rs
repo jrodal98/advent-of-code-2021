@@ -21,11 +21,11 @@ impl Coordinate {
             .lines()
             .map(|line| Instruction::from_line(line).unwrap())
             .fold(Coordinate::default(), |mut acc, instruction| {
-                acc.move_submarine(instruction);
+                acc.dive(instruction);
                 acc
             })
     }
-    fn move_submarine(&mut self, instruction: Instruction) {
+    fn dive(&mut self, instruction: Instruction) {
         match instruction {
             Instruction::Forward(val) => {
                 self.horizontal += val;
