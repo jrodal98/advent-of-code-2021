@@ -13,24 +13,32 @@ fn problem1(input: &str) -> u32 {
 }
 
 fn problem2(input: &str) -> u32 {
+    let oxygen_rating = problem2_helper(input, false);
+    let co2_rating = problem2_helper(input, true);
+    oxygen_rating * co2_rating
+}
+
+fn problem2_helper(input: &str, flip_bits: bool) -> u32 {
     let lines: Vec<&str> = input.lines().collect();
-    let matrix = Matrix::new(lines);
-    let gamma_bits = matrix.most_common_bits();
-    let epsilon_bits = &gamma_bits.flip_bits();
-    gamma_bits.to_u32() * epsilon_bits.to_u32()
+    let mut i = 0;
+    let mut matrix = Matrix::new(lines);
+    while matrix.num_rows() != 1 {
+        let mut filter = matrix.most_common_bits();
+        if flip_bits {
+            filter = filter.flip_bits();
+        };
+        matrix = matrix.filter_rows(&filter, i);
+        i += 1;
+    }
+    matrix.rows[0].to_u32()
 }
 
 #[derive(Debug)]
-struct Matrix {
-    rows: Vec<BitRow>,
-}
-
-#[derive(Debug)]
-struct BitRow {
+struct Row {
     bits: Vec<char>,
 }
 
-impl BitRow {
+impl Row {
     fn new(line: &str) -> Self {
         Self {
             bits: line.chars().collect(),
@@ -54,10 +62,15 @@ impl BitRow {
     }
 }
 
+#[derive(Debug)]
+struct Matrix {
+    rows: Vec<Row>,
+}
+
 impl Matrix {
     fn new(lines: Vec<&str>) -> Self {
         Matrix {
-            rows: lines.iter().map(|line| BitRow::new(line)).collect(),
+            rows: lines.iter().map(|line| Row::new(line)).collect(),
         }
     }
 
@@ -73,7 +86,7 @@ impl Matrix {
         }
     }
 
-    fn most_common_bits(&self) -> BitRow {
+    fn most_common_bits(&self) -> Row {
         let bits = self
             .rows
             .iter()
@@ -85,82 +98,25 @@ impl Matrix {
             })
             .iter()
             .map(|&num_ones| {
-                if num_ones >= (self.num_rows() / 2).try_into().unwrap() {
+                if num_ones as f32 >= self.num_rows() as f32 / 2.0 {
                     '1'
                 } else {
                     '0'
                 }
             })
             .collect::<Vec<char>>();
-        BitRow { bits }
-    }
-}
-
-#[derive(Debug)]
-struct Game {
-    vals: Vec<i32>,
-}
-
-fn to_u32(bit_vec: &Vec<char>) -> u32 {
-    u32::from_str_radix(&bit_vec.iter().collect::<String>(), 2).unwrap()
-}
-
-fn get_gamma_bits(vals: &[i32]) -> Vec<char> {
-    vals.iter()
-        .map(|&v| if v >= 0 { '1' } else { '0' })
-        .collect::<Vec<char>>()
-}
-
-fn get_epsilon_bits(vals: &[i32]) -> Vec<char> {
-    vals.iter()
-        .map(|&v| if v < 0 { '1' } else { '0' })
-        .collect::<Vec<char>>()
-}
-
-impl Game {
-    fn init_from_line(line: &str) -> Self {
-        Self {
-            vals: line
-                .chars()
-                .map(|c| match c {
-                    '0' => -1,
-                    '1' => 1,
-                    _ => unreachable!(),
-                })
-                .collect::<Vec<i32>>(),
-        }
+        Row { bits }
     }
 
-    fn add_row(&mut self, other: &Self) {
-        for (i, val) in other.vals.iter().enumerate() {
-            self.vals[i] += val;
-        }
-    }
-
-    fn compute_problem1(&self) -> u32 {
-        let gamma_bits = get_gamma_bits(&self.vals);
-        let epsilon_bits = get_epsilon_bits(&self.vals);
-
-        let gamma = to_u32(&gamma_bits);
-        let epsilon = to_u32(&epsilon_bits);
-
-        gamma * epsilon
-    }
-
-    fn compute_problem2(&self, input: &str) -> u32 {
-        let gamma_bits = get_gamma_bits(&self.vals);
-        let mut lines: Vec<&str> = input.lines().collect();
-
-        let mut i = 0;
-        while lines.len() != 1 {
-            lines = lines
-                .into_iter()
-                .filter(|line| line.chars().nth(i).unwrap() == gamma_bits[i])
-                .collect::<Vec<&str>>();
-            i += 1;
-        }
-        dbg!(lines);
-        0
+    fn filter_rows(&self, filter: &Row, col: usize) -> Self {
+        let rows = self
+            .rows
+            .iter()
+            .map(|row| row.bits.clone())
+            .filter(|bits| bits[col] == filter.bits[col])
+            .map(|bits| Row { bits })
+            .collect();
+        Self { rows }
     }
 }
 
