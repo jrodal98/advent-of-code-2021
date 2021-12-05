@@ -1,51 +1,29 @@
-use std::io::BufRead;
-
 fn main() {
-    println!("problem 1: {}", problem1());
-    println!("problem 2: {}", problem2());
+    let input = include_str!("../data/input.txt");
+    println!("problem 1: {}", solution(input, 2));
+    println!("problem 2: {}", solution(input, 4));
 }
 
-fn problem1() -> u32 {
-    let file = std::fs::File::open("data/input.txt").unwrap();
-    let mut lines = std::io::BufReader::new(file).lines();
-
-    let mut num_increases: u32 = 0;
-    let mut last_num: u32 = lines.next().unwrap().unwrap().parse().unwrap();
-
-    for line in lines {
-        if let Ok(num) = line.unwrap().parse::<u32>() {
-            if num > last_num {
-                num_increases += 1;
-            }
-            last_num = num;
-        }
-    }
-
-    num_increases
+fn solution(input: &str, window_size: usize) -> usize {
+    input
+        .lines()
+        .map(|line| line.parse().unwrap())
+        .collect::<Vec<usize>>()
+        .windows(window_size)
+        .filter(|window| window[window_size - 1] > window[0])
+        .count()
 }
 
-fn problem2() -> u32 {
-    let file = std::fs::File::open("data/input.txt").unwrap();
-    let mut lines = std::io::BufReader::new(file).lines();
+#[test]
+fn test_problem1() {
+    let input = include_str!("../data/sample.txt");
+    let res = solution(input, 2);
+    assert_eq!(res, 7);
+}
 
-    let mut i = 0;
-    let mut last_nums: Vec<u32> = lines
-        .by_ref()
-        .take(3)
-        .map(|x| x.unwrap().parse().unwrap())
-        .collect::<Vec<u32>>();
-
-    let mut num_increases: u32 = 0;
-
-    for line in lines {
-        if let Ok(num) = line.unwrap().parse::<u32>() {
-            if num > last_nums[i] {
-                num_increases += 1;
-            }
-            last_nums[i] = num;
-            i = (i + 1) % 3;
-        }
-    }
-
-    num_increases
+#[test]
+fn test_problem2() {
+    let input = include_str!("../data/sample.txt");
+    let res = solution(input, 4);
+    assert_eq!(res, 5);
 }
