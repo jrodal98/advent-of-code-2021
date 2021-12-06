@@ -47,8 +47,8 @@ fn solution(input: &str) -> (usize, usize) {
 
 struct Board {
     chips: HashMap<usize, (usize, usize)>,
-    rows: Vec<usize>,
-    cols: Vec<usize>,
+    rows: [usize; 5],
+    cols: [usize; 5],
     num_chips_played: usize,
     final_chip: Option<usize>,
 }
@@ -67,8 +67,8 @@ impl Board {
         );
         Board {
             chips,
-            rows: vec![0; 5],
-            cols: vec![0; 5],
+            rows: [0; 5],
+            cols: [0; 5],
             num_chips_played: 0,
             final_chip: None,
         }
