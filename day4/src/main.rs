@@ -74,13 +74,15 @@ impl Board {
         }
     }
 
-    fn place_chip(&mut self, chip: usize) -> bool {
+    fn place_chip(&mut self, chip: usize) {
         self.num_chips_played += 1;
         if let Some((row, col)) = self.chips.remove(&chip) {
             self.rows[row] += 1;
             self.cols[col] += 1;
         }
-        // if game is over
+    }
+
+    fn is_board_complete(&self) -> bool {
         self.rows
             .iter()
             .any(|&chip_placed_in_row| chip_placed_in_row == 5)
@@ -92,7 +94,8 @@ impl Board {
 
     fn play_game(&mut self, chips: &Vec<usize>) {
         for chip in chips {
-            if self.place_chip(*chip) {
+            self.place_chip(*chip);
+            if self.is_board_complete() {
                 self.final_chip = Some(*chip);
                 return;
             }
