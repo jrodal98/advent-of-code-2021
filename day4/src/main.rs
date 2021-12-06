@@ -22,7 +22,7 @@ fn solution(input: &str) -> (usize, usize) {
         .filter(|line| !line.is_empty())
         .collect::<Vec<&str>>()
         .chunks(5)
-        .map(|board_slice| Board::new(board_slice))
+        .map(Board::new)
         .map(|mut board| {
             let _ = &board.play_game(&chips);
             board
