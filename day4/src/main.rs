@@ -47,8 +47,8 @@ fn solution(input: &str) -> (usize, usize) {
 
 struct Board {
     chips: HashMap<usize, (usize, usize)>,
-    rows: [usize; 5],
-    cols: [usize; 5],
+    n_marked_chips_per_row: [usize; 5],
+    n_marked_chips_per_col: [usize; 5],
     num_chips_played: usize,
     final_chip: Option<usize>,
 }
@@ -67,8 +67,8 @@ impl Board {
         );
         Board {
             chips,
-            rows: [0; 5],
-            cols: [0; 5],
+            n_marked_chips_per_row: [0; 5],
+            n_marked_chips_per_col: [0; 5],
             num_chips_played: 0,
             final_chip: None,
         }
@@ -77,17 +77,17 @@ impl Board {
     fn place_chip(&mut self, chip: usize) {
         self.num_chips_played += 1;
         if let Some((row, col)) = self.chips.remove(&chip) {
-            self.rows[row] += 1;
-            self.cols[col] += 1;
+            self.n_marked_chips_per_row[row] += 1;
+            self.n_marked_chips_per_col[col] += 1;
         }
     }
 
     fn is_board_complete(&self) -> bool {
-        self.rows
+        self.n_marked_chips_per_row
             .iter()
             .any(|&chip_placed_in_row| chip_placed_in_row == 5)
             || self
-                .cols
+                .n_marked_chips_per_col
                 .iter()
                 .any(|&chip_placed_in_row| chip_placed_in_row == 5)
     }
