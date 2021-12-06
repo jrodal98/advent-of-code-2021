@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 const NUM_ROWS: usize = 5;
 const NUM_COLS: usize = 5;
+const MAX_VAL: usize = 100; // real bingo only has 75, but this input doesn't for some reason...
 
 fn main() {
     let input = include_str!("../data/input.txt");
@@ -48,8 +47,29 @@ fn solution(input: &str) -> (usize, usize) {
     )
 }
 
+#[derive(Copy, Clone)]
+struct Coordinate {
+    x: usize,
+    y: usize,
+    is_marked: bool,
+}
+
+impl Coordinate {
+    fn new(x: usize, y: usize) -> Self {
+        Self {
+            x,
+            y,
+            is_marked: false,
+        }
+    }
+
+    fn mark(&mut self) {
+        self.is_marked = true;
+    }
+}
+
 struct Board {
-    chips: HashMap<usize, (usize, usize)>,
+    chips: [Option<Coordinate>; MAX_VAL],
     n_marked_chips_per_row: [usize; NUM_ROWS],
     n_marked_chips_per_col: [usize; NUM_COLS],
     num_chips_played: usize,
@@ -58,16 +78,18 @@ struct Board {
 
 impl Board {
     fn new(lines: &[&str]) -> Self {
-        let chips = lines.iter().enumerate().fold(
-            HashMap::new(),
-            |mut acc: HashMap<usize, (usize, usize)>, (row, &line)| {
+        let chips = lines
+            .iter()
+            .enumerate()
+            .fold([None; MAX_VAL], |mut acc, (row, &line)| {
                 line.split_whitespace()
                     .enumerate()
-                    .map(|(col, raw_num)| acc.insert(raw_num.parse::<usize>().unwrap(), (row, col)))
+                    .map(|(col, raw_num)| {
+                        acc[raw_num.parse::<usize>().unwrap()] = Some(Coordinate::new(row, col))
+                    })
                     .count();
                 acc
-            },
-        );
+            });
         Board {
             chips,
             n_marked_chips_per_row: [0; 5],
@@ -79,9 +101,10 @@ impl Board {
 
     fn place_chip(&mut self, chip: usize) {
         self.num_chips_played += 1;
-        if let Some((row, col)) = self.chips.remove(&chip) {
-            self.n_marked_chips_per_row[row] += 1;
-            self.n_marked_chips_per_col[col] += 1;
+        if let Some(coordinate) = &mut self.chips[chip] {
+            self.n_marked_chips_per_row[coordinate.x] += 1;
+            self.n_marked_chips_per_col[coordinate.y] += 1;
+            coordinate.mark();
         }
     }
 
@@ -106,7 +129,22 @@ impl Board {
     }
 
     fn calculate_score(&self) -> usize {
-        let sum_of_unmarked: usize = self.chips.keys().sum();
+        let sum_of_unmarked: usize = self
+            .chips
+            .iter()
+            .enumerate()
+            .map(|(i, coordinate)| {
+                if let Some(c) = coordinate {
+                    if c.is_marked {
+                        0
+                    } else {
+                        i
+                    }
+                } else {
+                    0
+                }
+            })
+            .sum();
         sum_of_unmarked * self.final_chip.unwrap_or(0)
     }
 }
