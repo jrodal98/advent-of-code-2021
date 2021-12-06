@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+const NUM_ROWS: usize = 5;
+const NUM_COLS: usize = 5;
+
 fn main() {
     let input = include_str!("../data/input.txt");
     let (sol1, sol2) = solution(input);
@@ -47,8 +50,8 @@ fn solution(input: &str) -> (usize, usize) {
 
 struct Board {
     chips: HashMap<usize, (usize, usize)>,
-    n_marked_chips_per_row: [usize; 5],
-    n_marked_chips_per_col: [usize; 5],
+    n_marked_chips_per_row: [usize; NUM_ROWS],
+    n_marked_chips_per_col: [usize; NUM_COLS],
     num_chips_played: usize,
     final_chip: Option<usize>,
 }
