@@ -7,35 +7,30 @@ fn main() {
 }
 
 fn solution(input: &str, num_days: u64) -> u64 {
+    let mut cache = HashMap::new();
     input
         .trim()
         .split(',')
         .map(|s| s.parse().unwrap())
-        .fold(0, |mut acc, s| {
-            acc += get_num_children(s, 1, num_days, &mut HashMap::new()) + 1;
-            acc
+        .fold(0, |acc, s| {
+            acc + get_num_children(s, num_days, &mut cache) + 1
         })
 }
 
-fn get_num_children(
-    state: u64,
-    days_passed: u64,
-    total_days: u64,
-    cache: &mut HashMap<(u64, u64), u64>,
-) -> u64 {
-    if days_passed > total_days {
+fn get_num_children(state: u64, days_remaining: u64, cache: &mut HashMap<(u64, u64), u64>) -> u64 {
+    if days_remaining == 0 {
         return 0;
     }
-    let cache_key = &(state, days_passed);
+    let cache_key = &(state, days_remaining);
     if let Some(cached_val) = cache.get(cache_key) {
         return *cached_val;
     }
 
     let num_children = if state == 0 {
-        1 + get_num_children(6, days_passed + 1, total_days, cache)
-            + get_num_children(8, days_passed + 1, total_days, cache)
+        1 + get_num_children(6, days_remaining - 1, cache)
+            + get_num_children(8, days_remaining - 1, cache)
     } else {
-        get_num_children(state - 1, days_passed + 1, total_days, cache)
+        get_num_children(state - 1, days_remaining - 1, cache)
     };
 
     if cache.insert(*cache_key, num_children).is_some() {
