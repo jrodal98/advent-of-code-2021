@@ -12,10 +12,10 @@ fn solution(input: &str, num_days: u64) -> u64 {
         .trim()
         .split(',')
         .map(|s| s.parse().unwrap())
-        .fold(0, |acc, s| acc + num_fish(s, num_days, &mut cache))
+        .fold(0, |acc, s| acc + get_num_fish(s, num_days, &mut cache))
 }
 
-fn num_fish(state: u64, days_remaining: u64, cache: &mut HashMap<(u64, u64), u64>) -> u64 {
+fn get_num_fish(state: u64, days_remaining: u64, cache: &mut HashMap<(u64, u64), u64>) -> u64 {
     if days_remaining == 0 {
         return 1;
     }
@@ -25,16 +25,16 @@ fn num_fish(state: u64, days_remaining: u64, cache: &mut HashMap<(u64, u64), u64
         return cached_val;
     }
 
-    let num_children = if state == 0 {
-        num_fish(6, days_remaining - 1, cache) + num_fish(8, days_remaining - 1, cache)
+    let num_fish = if state == 0 {
+        get_num_fish(6, days_remaining - 1, cache) + get_num_fish(8, days_remaining - 1, cache)
     } else {
-        num_fish(state - 1, days_remaining - 1, cache)
+        get_num_fish(state - 1, days_remaining - 1, cache)
     };
 
-    if cache.insert(cache_key, num_children).is_some() {
+    if cache.insert(cache_key, num_fish).is_some() {
         panic!("If this happens, then clowntown");
     }
-    num_children
+    num_fish
 }
 
 #[test]
