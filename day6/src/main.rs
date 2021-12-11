@@ -19,9 +19,10 @@ fn num_fish(state: u64, days_remaining: u64, cache: &mut HashMap<(u64, u64), u64
     if days_remaining == 0 {
         return 1;
     }
-    let cache_key = &(state, days_remaining);
-    if let Some(cached_val) = cache.get(cache_key) {
-        return *cached_val;
+
+    let cache_key = (state, days_remaining);
+    if let Some(&cached_val) = cache.get(&cache_key) {
+        return cached_val;
     }
 
     let num_children = if state == 0 {
@@ -30,7 +31,7 @@ fn num_fish(state: u64, days_remaining: u64, cache: &mut HashMap<(u64, u64), u64
         num_fish(state - 1, days_remaining - 1, cache)
     };
 
-    if cache.insert(*cache_key, num_children).is_some() {
+    if cache.insert(cache_key, num_children).is_some() {
         panic!("If this happens, then clowntown");
     }
     num_children
