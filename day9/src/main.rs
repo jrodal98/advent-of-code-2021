@@ -1,13 +1,8 @@
-use std::arch::x86_64::_mm256_insertf128_ps;
-
 fn main() {
     let input = include_str!("../data/input.txt");
-    println!("Problem 1: {}", problem1(input));
+    let grid = Grid::new(input);
+    println!("Problem 1: {}", grid.solve_problem1());
     println!("Problem 2: {}", problem2(input));
-}
-
-fn problem1(input: &str) -> u32 {
-    Grid::new(input).solve_problem1()
 }
 
 fn problem2(input: &str) -> u32 {
@@ -47,38 +42,38 @@ struct Grid {
 
 impl Grid {
     fn new(input: &str) -> Self {
-        let locations = input
+        let mut locations: Vec<Vec<Location>> = input
             .lines()
             .map(|line| line.chars().map(Location::new).collect())
             .collect();
-        Self { locations }
-    }
 
-    fn solve_problem1(&mut self) -> u32 {
-        let last_row = self.locations.len() - 1;
-        let last_col = self.locations[0].len() - 1;
+        let last_row = locations.len() - 1;
+        let last_col = locations[0].len() - 1;
 
         for row in 0..=last_row {
             for col in 0..=last_col {
                 let mut neighbors = vec![];
                 if row > 0 {
-                    neighbors.push(&self.locations[row - 1][col]);
+                    neighbors.push(&locations[row - 1][col]);
                 }
                 if row < last_row {
-                    neighbors.push(&self.locations[row + 1][col]);
+                    neighbors.push(&locations[row + 1][col]);
                 }
                 if col > 0 {
-                    neighbors.push(&self.locations[row][col - 1]);
+                    neighbors.push(&locations[row][col - 1]);
                 }
                 if col < last_col {
-                    neighbors.push(&self.locations[row][col + 1]);
+                    neighbors.push(&locations[row][col + 1]);
                 }
-                if self.locations[row][col].should_mark(neighbors) {
-                    self.locations[row][col].mark()
+                if locations[row][col].should_mark(neighbors) {
+                    locations[row][col].mark()
                 }
             }
         }
+        Self { locations }
+    }
 
+    fn solve_problem1(&self) -> u32 {
         self.locations
             .iter()
             .flatten()
@@ -91,7 +86,8 @@ impl Grid {
 #[test]
 fn test_problem1() {
     let input = include_str!("../data/sample.txt");
-    let res = problem1(input);
+    let grid = Grid::new(input);
+    let res = grid.solve_problem1();
     assert_eq!(res, 15);
 }
 
